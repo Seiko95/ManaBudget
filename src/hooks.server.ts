@@ -7,10 +7,21 @@ import {
 	validateSessionToken
 } from '$lib/server/auth';
 import { countUsers } from '$lib/server/users';
+import { materializeDue } from '$lib/server/recurring';
+
+function runRecurring() {
+	try {
+		materializeDue(getDb());
+	} catch (e) {
+		console.error('Recurring materialization failed', e);
+	}
+}
 
 export const init: ServerInit = () => {
 	// Opening the database applies pending migrations.
 	getDb();
+	runRecurring();
+	setInterval(runRecurring, 60 * 60 * 1000).unref();
 };
 
 const PUBLIC_PATHS = new Set(['/api/health', '/login', '/logout', '/setup']);

@@ -3,7 +3,13 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Repeat from '@lucide/svelte/icons/repeat';
+	import { enhance } from '$app/forms';
 	import ConfirmAction from '$lib/components/ConfirmAction.svelte';
+	import NativeSelect from '$lib/components/NativeSelect.svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { enhanceWithToast } from '$lib/forms';
 	import Lightbox from '$lib/components/Lightbox.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { formatCents, formatDay } from '$lib/format';
@@ -14,6 +20,7 @@
 	let { data }: PageProps = $props();
 	const e = $derived(data.expense);
 	let photoIndex = $state<number | null>(null);
+	let recurringOpen = $state(false);
 </script>
 
 <svelte:head><title>{t.expenses.detail} · {t.app.name}</title></svelte:head>
@@ -61,9 +68,16 @@
 		{/if}
 		{#if e.description}<p class="mt-3 whitespace-pre-line">{e.description}</p>{/if}
 		{#if e.recurringRuleId}
-			<p class="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+			<a
+				href="/recurrents"
+				class="mt-3 flex items-center gap-2 text-sm text-muted-foreground underline"
+			>
 				<Repeat class="size-4" />{t.expenses.recurringFrom}
-			</p>
+			</a>
+		{:else}
+			<Button variant="outline" size="sm" class="mt-4" onclick={() => (recurringOpen = true)}>
+				<Repeat />{t.recurring.makeRecurring}
+			</Button>
 		{/if}
 	</div>
 
@@ -121,3 +135,35 @@
 </div>
 
 <Lightbox photos={e.photos} bind:index={photoIndex} />
+
+<Dialog.Root bind:open={recurringOpen}>
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>{t.recurring.makeRecurring}</Dialog.Title>
+		</Dialog.Header>
+		<form
+			id="make-recurring"
+			method="POST"
+			action="?/makeRecurring"
+			class="space-y-4"
+			use:enhance={enhanceWithToast({ onSuccess: () => (recurringOpen = false) })}
+		>
+			<div class="space-y-1.5">
+				<Label for="mr-frequency">{t.recurring.frequency}</Label>
+				<NativeSelect id="mr-frequency" name="frequency" value="monthly">
+					<option value="monthly">{t.recurring.monthly}</option>
+					<option value="weekly">{t.recurring.weekly}</option>
+					<option value="yearly">{t.recurring.yearly}</option>
+				</NativeSelect>
+			</div>
+			<div class="space-y-1.5">
+				<Label for="mr-end">{t.recurring.endDate}</Label>
+				<Input id="mr-end" name="endDate" type="date" />
+			</div>
+		</form>
+		<Dialog.Footer>
+			<Button variant="outline" onclick={() => (recurringOpen = false)}>{t.common.cancel}</Button>
+			<Button type="submit" form="make-recurring">{t.common.save}</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

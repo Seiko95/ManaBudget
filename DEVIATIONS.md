@@ -98,3 +98,19 @@ it costs if it's wrong.
   first), which gives the phone's native suggestion UI.
 - `/revenus` shows one period at a time (same period switcher as elsewhere) with its total.
   Tapping a row edits it.
+
+## Step 7 — Recurring
+
+- **Schedules:** monthly rules fire on `day_of_month` (29–31 clamped to the month's last day);
+  weekly rules repeat every 7 days from the start date; yearly rules use the start date's month
+  plus `day_of_month` (29 Feb → 28 Feb in non-leap years).
+- **"Rendre récurrente"** links the original expense as the rule's occurrence for its own date
+  (it sets `recurring_rule_id` / `occurrence_date` on it). The first automatic entry is therefore
+  the next one, and nothing is duplicated. The rule takes the expense's first category when the
+  expense was split.
+- **Editing a rule** continues the schedule after the last entry it already created; past
+  entries are never rewritten. **Deleting a rule** keeps its past entries (the link is cleared).
+- **Saving a rule** materializes anything already due right away (e.g. a rule that started last
+  month), on top of startup, the hourly timer and dashboard loads.
+- Expense rules have no tags or splits (a single category), since the rule schema has a single
+  `category_id`.
