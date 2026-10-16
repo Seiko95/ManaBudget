@@ -159,3 +159,10 @@ it costs if it's wrong.
   load, form action, API route and the photo route as user B against user A's data, alongside
   the per-module isolation tests.
 - **README in English**, matching the spec's language; the UI stays French.
+
+## Verification — Docker
+
+- **Entrypoint added** (`docker-entrypoint.sh`): when `./data` doesn't exist yet, Docker creates
+  it owned by root and the non-root app couldn't open its database (reproduced). The container
+  now starts as root only to `chown` `/data` when needed, then `setpriv`s to the `node` user;
+  the Node process itself runs as uid 1000.
