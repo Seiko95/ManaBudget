@@ -16,7 +16,7 @@
 	<h1 class="mt-4 text-xl font-semibold">
 		{messages[page.status] ?? page.error?.message ?? t.common.error}
 	</h1>
-	{#if page.error?.message && messages[page.status] && page.error.message !== messages[page.status]}
+	{#if page.error?.message && messages[page.status] && !/^(Not Found|Forbidden|Unauthorized)$/.test(page.error.message) && page.error.message !== messages[page.status]}
 		<p class="mt-2 text-sm text-muted-foreground">{page.error.message}</p>
 	{/if}
 	<a href="/" class="mt-6 inline-block text-sm font-medium underline">{t.errors.home}</a>

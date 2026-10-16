@@ -150,7 +150,7 @@
 
 <div
 	bind:this={el}
-	class="z-0 w-full overflow-hidden rounded-xl border {className}"
+	class="isolate z-0 w-full overflow-hidden rounded-xl border {className}"
 	role="region"
 	aria-label={label}
 ></div>

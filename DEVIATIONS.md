@@ -127,3 +127,18 @@ it costs if it's wrong.
   something was spent, as a text line.
 - **Status label text** uses darker amber/red shades in light mode for contrast; the bars keep
   the fixed status colours.
+
+## Step 9 — Statistics
+
+- **Range selector:** 1 period / 3 / 6 / 12 months ending at a chosen period (`?n=` and
+  `?fin=YYYY-MM`). The trend chart always shows the 12 periods ending at `fin`.
+- **Spending by budget is always horizontal bars** (budgets usually exceed ~5 slices). Tapping
+  a bar or a budget chip drills into its categories, drawn in the budget's colour.
+- **Income vs expenses:** grouped columns plus a net line on the same € axis (one axis, no dual
+  scale). Income/expense series use aqua/orange, and the net line uses the text colour so it
+  can't be confused with a budget.
+- **Top places:** horizontal bars (top 10) plus a map whose circle *area* is proportional to the
+  amount; tapping a circle opens the matching filtered expense list.
+- **Every chart has a "Voir le tableau" table**, so the data is never colour- or canvas-only.
+- `e2e/tools/seed-demo.ts` fills a data dir with a year of demo data (`demo` /
+  `motdepasse-demo`), useful for trying the charts.
