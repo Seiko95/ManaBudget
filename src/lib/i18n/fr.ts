@@ -7,6 +7,73 @@ export const fr = {
 		name: 'ManaBudget',
 		tagline: 'Votre budget, chez vous.'
 	},
+	nav: {
+		dashboard: 'Tableau de bord',
+		dashboardShort: 'Accueil',
+		expenses: 'Dépenses',
+		incomes: 'Revenus',
+		budgets: 'Budgets',
+		places: 'Lieux',
+		recurring: 'Récurrents',
+		stats: 'Statistiques',
+		statsShort: 'Stats',
+		settings: 'Réglages',
+		admin: 'Administration',
+		more: 'Plus',
+		newExpense: 'Nouvelle dépense',
+		mainNav: 'Navigation principale'
+	},
+	auth: {
+		username: "Nom d'utilisateur",
+		password: 'Mot de passe',
+		passwordConfirm: 'Confirmer le mot de passe',
+		displayName: 'Nom affiché',
+		login: 'Se connecter',
+		logout: 'Se déconnecter',
+		loginTitle: 'Connexion',
+		invalidCredentials: "Nom d'utilisateur ou mot de passe incorrect",
+		tooManyAttempts: 'Trop de tentatives. Réessayez dans {minutes} min.',
+		setupTitle: 'Bienvenue sur ManaBudget',
+		setupIntro:
+			'Créez le compte administrateur. Il pourra ensuite créer les comptes des autres utilisateurs.',
+		setupSubmit: 'Créer le compte administrateur',
+		usernameInvalid:
+			"Le nom d'utilisateur doit faire 3 à 32 caractères : lettres, chiffres, point, tiret ou tiret bas.",
+		usernameTaken: "Ce nom d'utilisateur est déjà pris",
+		displayNameRequired: 'Le nom affiché est obligatoire',
+		passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
+		passwordMismatch: 'Les mots de passe ne correspondent pas'
+	},
+	admin: {
+		title: 'Administration',
+		subtitle:
+			"Comptes utilisateurs. L'administrateur n'a pas accès aux données des autres comptes.",
+		newUser: 'Nouvel utilisateur',
+		isAdmin: 'Administrateur',
+		created: 'Utilisateur créé',
+		createdAt: 'Créé le {date}',
+		resetPassword: 'Réinitialiser le mot de passe',
+		newPassword: 'Nouveau mot de passe',
+		passwordReset: 'Mot de passe réinitialisé',
+		disable: 'Désactiver',
+		enable: 'Réactiver',
+		disabled: 'Compte désactivé',
+		enabled: 'Compte réactivé',
+		disabledBadge: 'Désactivé',
+		adminBadge: 'Admin',
+		you: 'vous',
+		deleteUser: 'Supprimer le compte',
+		deleteConfirm:
+			'Supprimer le compte « {name} » et toutes ses données (dépenses, photos…) ? Cette action est irréversible.',
+		deleted: 'Compte supprimé',
+		notSelf: 'Vous ne pouvez pas faire cela sur votre propre compte'
+	},
+	errors: {
+		unauthorized: 'Veuillez vous connecter',
+		forbidden: 'Accès refusé',
+		notFound: 'Page introuvable',
+		home: "Retour à l'accueil"
+	},
 	common: {
 		save: 'Enregistrer',
 		cancel: 'Annuler',
