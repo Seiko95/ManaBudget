@@ -258,3 +258,19 @@ export function moveCategory(db: DB, userId: number, id: number, dir: 'up' | 'do
 		);
 	});
 }
+
+/** Active budgets with their active categories, for pickers. */
+export function budgetOptions(db: DB, userId: number) {
+	return listBudgets(db, userId, '9999-12-31').map((b) => ({
+		id: b.id,
+		name: b.name,
+		icon: b.icon,
+		color: b.color,
+		categories: b.categories.map((c) => ({
+			id: c.id,
+			name: c.name,
+			icon: c.icon,
+			budgetId: c.budgetId
+		}))
+	}));
+}

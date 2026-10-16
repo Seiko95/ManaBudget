@@ -57,3 +57,17 @@ it costs if it's wrong.
 - **Selects** use a styled native `<select>` (the phone's native picker) for simple choices like
   the start day or a category's budget; comboboxes are kept for search-heavy pickers (places,
   categories in the expense form).
+
+## Step 4 — Places
+
+- **Location is only read silently when permission is already granted** (Permissions API).
+  Otherwise the browser is asked only when you tap "Utiliser ma position", so a page load never
+  triggers a permission prompt. Browsers without the Permissions API (older Safari) never sort
+  by distance until you tap that button once.
+- **Geocoder cache:** in memory, 500 entries, 7-day TTL; reverse lookups are rounded to ~10 m
+  so nearby positions share an entry. Searching only happens on the search button or Enter,
+  never per keystroke.
+- **Tapping the mini-map moves the pin** too (as well as dragging it), which is easier on phones.
+- **Dark mode dims the OSM tiles** with a CSS filter so the map isn't a bright block.
+- `GEOCODING_ENABLED` and `GEOCODER_USER_AGENT` env vars were added alongside `NOMINATIM_URL`
+  (the spec asks for geocoding to be switchable and for a User-Agent).
