@@ -8,6 +8,7 @@
 	import { t } from '$lib/i18n/fr';
 	import { ui, openNewExpense } from '$lib/stores/ui.svelte';
 	import FormSheet from './FormSheet.svelte';
+	import ExpenseSheet from './ExpenseSheet.svelte';
 
 	let {
 		user,
@@ -165,3 +166,5 @@
 		</form>
 	</nav>
 </FormSheet>
+
+<ExpenseSheet />

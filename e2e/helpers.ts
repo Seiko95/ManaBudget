@@ -43,3 +43,25 @@ export async function createUserAsAdmin(
 export function isMobile(page: Page) {
 	return (page.viewportSize()?.width ?? 1440) < 1024;
 }
+
+export async function openNewExpense(page: Page) {
+	if (isMobile(page)) await page.getByTestId('fab-new-expense').click();
+	else await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
+	await expect(page.getByRole('dialog', { name: 'Nouvelle dépense' })).toBeVisible();
+	await expect(page.getByLabel('Montant', { exact: true })).toBeVisible();
+}
+
+/** Picks an option in one of the app's comboboxes (place / category pickers). */
+export async function pickCombobox(
+	page: Page,
+	input: ReturnType<Page['getByLabel']>,
+	text: string,
+	option?: string | RegExp
+) {
+	await input.click();
+	await input.fill(text);
+	await page
+		.getByRole('option', { name: option ?? text })
+		.first()
+		.click();
+}

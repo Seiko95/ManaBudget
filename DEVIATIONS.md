@@ -71,3 +71,23 @@ it costs if it's wrong.
 - **Dark mode dims the OSM tiles** with a CSS filter so the map isn't a bright block.
 - `GEOCODING_ENABLED` and `GEOCODER_USER_AGENT` env vars were added alongside `NOMINATIM_URL`
   (the spec asks for geocoding to be switchable and for a User-Agent).
+
+## Step 5 — Expenses
+
+- **The expense form is one global sheet** opened by the "+" button (or "Nouvelle dépense" on
+  desktop) from any page, and by "Modifier" on the detail page. It saves through JSON/multipart
+  API routes (`/api/expenses`) rather than page form actions, so it works the same from every
+  route.
+- **Default list period:** `/depenses` shows the current period unless the URL says otherwise
+  (`periode=YYYY-MM`, `periode=tout`, or `du`/`au`). The French query parameter names are
+  `periode, du, au, budget, categorie, lieu, etiquette, min, max, q`.
+- **Text search** covers description, place name, tag names and category names.
+- **The "nearest place" chip** appears when the closest place is within 500 m.
+- **Tags get a colour automatically** (cycling through the palette); there's no tag management
+  screen, since the spec doesn't list one.
+- **Photos:** up to 10 per upload, 20 MB each before browser-side shrinking. They're processed
+  before the expense is written, so an unreadable image rejects the save instead of leaving a
+  half-saved expense. Rotation from EXIF orientation is applied, then all metadata is dropped.
+- **Pickers open on tap, not on focus**, so the list doesn't pop back open when focus returns to
+  the field after the "Nouveau lieu" sheet closes.
+- Budget alerts after saving are wired through but return nothing until step 8.
