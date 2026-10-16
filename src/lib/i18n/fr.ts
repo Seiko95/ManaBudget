@@ -229,6 +229,32 @@ export const fr = {
 		invalidDay: 'Jour du mois invalide',
 		created: '{n} élément(s) récurrent(s) ajouté(s)'
 	},
+	alerts: {
+		used: '{name} : {pct} du budget utilisé',
+		overSuffix: '(dépassé)',
+		banner: 'Budgets à surveiller',
+		statusOk: 'Dans les clous',
+		statusWarning: 'Attention',
+		statusOver: 'Dépassé',
+		statusNone: 'Pas de limite',
+		count: '{n} alerte(s)'
+	},
+	dashboard: {
+		title: 'Tableau de bord',
+		greeting: 'Bonjour {name}',
+		income: 'Revenus',
+		expenses: 'Dépenses',
+		balance: 'Solde',
+		budgets: 'Budgets',
+		latest: 'Dernières dépenses',
+		seeAll: 'Tout voir',
+		noExpenses: 'Aucune dépense sur cette période. Appuyez sur + pour en ajouter une.',
+		spentOf: '{spent} sur {limit}',
+		spentNoLimit: '{spent} dépensés',
+		left: 'reste {amount}',
+		over: 'dépassé de {amount}',
+		manageBudgets: 'Gérer les budgets'
+	},
 	settings: {
 		title: 'Réglages',
 		profile: 'Profil',

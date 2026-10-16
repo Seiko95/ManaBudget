@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { ADMIN, SECOND, login, logout, openNewExpense, pickCombobox } from './helpers';
+import { ADMIN, SECOND, isMobile, login, logout, openNewExpense, pickCombobox } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -49,6 +49,12 @@ test('add an expense: create a place from the list, split across 2 categories, t
 
 	await sheet.getByRole('button', { name: 'Enregistrer' }).click();
 	await expect(page.getByText('Dépense enregistrée')).toBeVisible();
+	// Alimentation has a 100 € limit (budgets test) with an 80 % alert: 85,50 € crosses it
+	await expect(
+		page
+			.getByRole('region', { name: /Notifications/ })
+			.getByText(/Alimentation : 85\s%\sdu budget utilisé/)
+	).toBeVisible();
 	await expect(sheet).toBeHidden();
 
 	// It shows up in the list, with its detail, splits and photo
@@ -64,6 +70,18 @@ test('add an expense: create a place from the list, split across 2 categories, t
 	await thumb.click();
 	await expect(page.getByRole('img', { name: 'Photo 1' })).toBeVisible();
 	await page.keyboard.press('Escape');
+});
+
+test('the dashboard progress bar and alert reflect the expense', async ({ page }) => {
+	await login(page, ADMIN);
+	await page.goto('/');
+	const bar = page.getByTestId('budget-progress').filter({ hasText: 'Alimentation' });
+	await expect(bar).toHaveAttribute('data-status', 'warning');
+	await expect(bar).toContainText('85 %');
+	await expect(bar.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '86');
+	await expect(page.getByTestId('alert-banner')).toContainText('Alimentation');
+	await expect(page.getByTestId('tile-expenses')).toContainText('95,50');
+	if (!isMobile(page)) await expect(page.getByTestId('alert-badge')).toHaveText('1');
 });
 
 test('filters in the URL return the expense', async ({ page }) => {

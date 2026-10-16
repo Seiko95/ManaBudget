@@ -114,3 +114,16 @@ it costs if it's wrong.
   month), on top of startup, the hourly timer and dashboard loads.
 - Expense rules have no tags or splits (a single category), since the rule schema has a single
   `category_id`.
+
+## Step 8 — Dashboard & alerts
+
+- **Alert toasts fire only when a budget's status gets worse** (ok → warning, warning → over) for
+  the period of the expense's date, so adding more to a budget already in "warning" doesn't toast
+  again.
+- **The nav badge counts warning + over budgets in the current period**; on phones it's a dot
+  on "Accueil".
+- **Dashboard budget list:** budgets with a limit get a progress bar (green/amber/red with an
+  icon and label, so colour is never the only cue); budgets without a limit appear only if
+  something was spent, as a text line.
+- **Status label text** uses darker amber/red shades in light mode for contrast; the bars keep
+  the fixed status colours.
