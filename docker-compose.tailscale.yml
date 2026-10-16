@@ -43,5 +43,8 @@ services:
       TILE_URL: ${TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
       NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org}
       GEOCODING_ENABLED: ${GEOCODING_ENABLED:-true}
+      # Tailscale serve forwards the client address in X-Forwarded-For
+      ADDRESS_HEADER: X-Forwarded-For
+      XFF_DEPTH: '1'
     volumes:
       - ./data:/data
