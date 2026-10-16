@@ -86,8 +86,7 @@
 	// Markers
 	$effect(() => {
 		if (!map || !L || !markerLayer) return;
-		const css = getComputedStyle(document.documentElement);
-		const fallback = css.getPropertyValue('--primary').trim() || '#2a78d6';
+		const fallback = '#2a78d6';
 		markerLayer.clearLayers();
 		for (const m of markers) {
 			const c = L.circleMarker([m.lat, m.lng], {

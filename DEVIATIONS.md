@@ -137,8 +137,25 @@ it costs if it's wrong.
 - **Income vs expenses:** grouped columns plus a net line on the same € axis (one axis, no dual
   scale). Income/expense series use aqua/orange, and the net line uses the text colour so it
   can't be confused with a budget.
-- **Top places:** horizontal bars (top 10) plus a map whose circle *area* is proportional to the
+- **Top places:** horizontal bars (top 10) plus a map whose circle _area_ is proportional to the
   amount; tapping a circle opens the matching filtered expense list.
 - **Every chart has a "Voir le tableau" table**, so the data is never colour- or canvas-only.
 - `e2e/tools/seed-demo.ts` fills a data dir with a year of demo data (`demo` /
   `motdepasse-demo`), useful for trying the charts.
+
+## Step 10 — PWA, polish, docs, CI
+
+- **Service worker (online only):** caches only the built app shell (hashed JS/CSS, icons,
+  manifest). Pages, data and photos always go to the network; without a connection, page loads
+  show a small French "Vous êtes hors ligne" page with a retry button.
+- **Icons** are generated from `static/icons/icon.svg` (a drop with a € sign), including a
+  maskable 512 px icon and a 180 px apple-touch-icon.
+- **CI workflow** (`.github/workflows/docker.yml`): runs check, lint and unit tests, then builds
+  amd64 + arm64 and pushes `ghcr.io/seiko95/manabudget` with tags `latest` (main),
+  `x.y.z` / `x.y` (version tags) and `sha-…`. Pull requests build without pushing. `latest` is
+  keyed on `refs/heads/main`, not "default branch", because the repo's default branch is
+  currently the spec branch.
+- **Route-level isolation tests** (`src/lib/server/isolation.test.ts`) call every relevant
+  load, form action, API route and the photo route as user B against user A's data, alongside
+  the per-module isolation tests.
+- **README in English**, matching the spec's language; the UI stays French.

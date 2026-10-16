@@ -31,3 +31,6 @@ test-results
 /test-data
 .superpowers
 playwright-report
+
+# Tailscale sidecar state
+/tailscale/state
