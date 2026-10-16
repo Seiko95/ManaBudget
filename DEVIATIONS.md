@@ -41,3 +41,19 @@ it costs if it's wrong.
   scrolling forms and nested pickers on phones.
 - **Admins can't disable or delete their own account**, so there is always one admin.
 - **Deleting a user** removes all their rows (FK cascade) and their `/data/uploads/<id>` folder.
+
+## Step 3 — Budgets & periods
+
+- **Period label rule, made deterministic:** start days 2–15 take the start month's name and
+  16–28 take the following month's. This is the "month with most days" rule from the spec,
+  except for one edge case: start day 16 in a 31-day month (16 vs 15 days). Following the
+  majority literally would give two consecutive periods the same name in some years (e.g. start
+  day 16 around February), so a fixed threshold keeps every label unique. Unit tests check that
+  periods tile the calendar with no gaps or duplicates.
+- **Editing a limit applies from the period shown on the Budgets page** (which defaults to the
+  current one), via an upsert of `budget_limits(budget_id, effective_from)`. Going back to an
+  earlier period and editing it changes only that period, up to the next recorded change.
+- **Changing the password signs out your other devices.**
+- **Selects** use a styled native `<select>` (the phone's native picker) for simple choices like
+  the start day or a category's budget; comboboxes are kept for search-heavy pickers (places,
+  categories in the expense form).
