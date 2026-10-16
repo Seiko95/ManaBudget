@@ -176,6 +176,23 @@ export const fr = {
 		prevPhoto: 'Photo précédente',
 		nextPhoto: 'Photo suivante'
 	},
+	incomes: {
+		title: 'Revenus',
+		subtitle: 'Salaire, remboursements, ventes…',
+		newIncome: 'Nouveau revenu',
+		editIncome: 'Modifier le revenu',
+		amount: 'Montant',
+		date: 'Date',
+		source: 'Source',
+		sourcePlaceholder: 'Salaire, CAF, Vinted…',
+		description: 'Description',
+		saved: 'Revenu enregistré',
+		deleted: 'Revenu supprimé',
+		deleteConfirm: 'Supprimer ce revenu ?',
+		empty: 'Aucun revenu sur cette période.',
+		total: 'Total : {amount}',
+		noSource: 'Revenu'
+	},
 	settings: {
 		title: 'Réglages',
 		profile: 'Profil',

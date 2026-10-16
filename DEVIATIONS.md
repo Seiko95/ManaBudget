@@ -91,3 +91,10 @@ it costs if it's wrong.
 - **Pickers open on tap, not on focus**, so the list doesn't pop back open when focus returns to
   the field after the "Nouveau lieu" sheet closes.
 - Budget alerts after saving are wired through but return nothing until step 8.
+
+## Step 6 — Income
+
+- **Source autocomplete** uses a native `<datalist>` filled with your past sources (most used
+  first), which gives the phone's native suggestion UI.
+- `/revenus` shows one period at a time (same period switcher as elsewhere) with its total.
+  Tapping a row edits it.
