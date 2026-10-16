@@ -1,0 +1,22 @@
+services:
+  manabudget:
+    image: ghcr.io/seiko95/manabudget:latest
+    build: .
+    container_name: manabudget
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Public URL of the app, required by SvelteKit's CSRF check
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
+      TZ: ${TZ:-Europe/Paris}
+      # adapter-node defaults to 512K, too small for photo uploads
+      BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-25M}
+      TILE_URL: ${TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
+      NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org}
+      GEOCODING_ENABLED: ${GEOCODING_ENABLED:-true}
+    volumes:
+      - ./data:/data
