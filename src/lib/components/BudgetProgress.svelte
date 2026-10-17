@@ -22,7 +22,25 @@
 				? t.alerts.statusWarning
 				: t.alerts.statusOk
 	);
-	const remaining = $derived(b.limitCents - b.spentCents);
+	const plannedColor = $derived(
+		b.projectedStatus === 'over'
+			? STATUS_COLORS.over
+			: b.projectedStatus === 'warning'
+				? STATUS_COLORS.warning
+				: STATUS_COLORS.ok
+	);
+	const remaining = $derived(b.limitCents - b.spentCents - b.plannedCents);
+	const plannedWidth = $derived(Math.max(0, Math.min(100, b.projectedPct) - Math.min(100, b.pct)));
+	// Shown when the planned part alone would push the budget to a worse status
+	const projectedLabel = $derived(
+		b.plannedCents > 0 && b.projectedStatus !== b.status
+			? b.projectedStatus === 'over'
+				? t.dashboard.projectedOver
+				: b.projectedStatus === 'warning'
+					? t.dashboard.projectedWarning
+					: null
+			: null
+	);
 </script>
 
 <a
@@ -49,14 +67,25 @@
 					/>{/if}
 				{statusLabel}
 			</span>
+		{:else if projectedLabel}
+			<span
+				class="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
+				data-testid="projected-status"
+			>
+				<TriangleAlert class="size-3.5" />{projectedLabel}
+			</span>
 		{/if}
 		<span class="text-sm tabular-nums">
-			{#if b.limitCents > 0}{formatPercent(Math.floor(b.pct))}{/if}
+			{#if b.limitCents > 0}{formatPercent(Math.floor(b.pct))}{#if b.plannedCents > 0}<span
+						class="text-muted-foreground"
+					>
+						→ {formatPercent(Math.floor(b.projectedPct))}</span
+					>{/if}{/if}
 		</span>
 	</div>
 	{#if b.limitCents > 0}
 		<div
-			class="mt-1.5 h-2.5 overflow-hidden rounded-full bg-muted"
+			class="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-muted"
 			role="progressbar"
 			aria-label="{b.name} : {statusLabel}"
 			aria-valuemin={0}
@@ -67,23 +96,40 @@
 				class="h-full rounded-full transition-[width] duration-500"
 				style="width: {Math.min(100, b.pct)}%; background-color: {color}"
 			></div>
+			{#if plannedWidth > 0}
+				<div
+					class="h-full rounded-r-full transition-[width] duration-500"
+					style="width: {plannedWidth}%; background: repeating-linear-gradient(135deg, {plannedColor} 0 3px, color-mix(in oklab, {plannedColor} 30%, transparent) 3px 6px)"
+					data-testid="planned-bar"
+				></div>
+			{/if}
 		</div>
 		<div class="mt-1 flex justify-between text-xs text-muted-foreground tabular-nums">
 			<span>
 				{t.dashboard.spentOf
 					.replace('{spent}', formatCents(b.spentCents))
 					.replace('{limit}', formatCents(b.limitCents))}
+				{#if b.plannedCents > 0}
+					· {t.dashboard.plannedPart.replace('{amount}', formatCents(b.plannedCents))}{/if}
 			</span>
 			<span class={remaining < 0 ? 'font-medium text-destructive' : ''}>
-				{remaining >= 0
-					? t.dashboard.left.replace('{amount}', formatCents(remaining))
-					: t.dashboard.over.replace('{amount}', formatCents(-remaining))}
+				{#if b.plannedCents > 0}
+					{remaining >= 0
+						? t.dashboard.leftAfterPlanned.replace('{amount}', formatCents(remaining))
+						: t.dashboard.overPlanned.replace('{amount}', formatCents(-remaining))}
+				{:else}
+					{remaining >= 0
+						? t.dashboard.left.replace('{amount}', formatCents(remaining))
+						: t.dashboard.over.replace('{amount}', formatCents(-remaining))}
+				{/if}
 			</span>
 		</div>
 	{:else}
 		<p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
-			{t.dashboard.spentNoLimit.replace('{spent}', formatCents(b.spentCents))} · {t.alerts
-				.statusNone}
+			{t.dashboard.spentNoLimit.replace('{spent}', formatCents(b.spentCents))}
+			{#if b.plannedCents > 0}
+				· {t.dashboard.plannedPart.replace('{amount}', formatCents(b.plannedCents))}{/if}
+			· {t.alerts.statusNone}
 		</p>
 	{/if}
 </a>

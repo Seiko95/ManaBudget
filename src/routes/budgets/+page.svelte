@@ -122,7 +122,7 @@
 	</label>
 </div>
 
-<div class="grid gap-4 px-4 pb-8 lg:grid-cols-2 lg:px-8">
+<div class="grid grid-cols-[minmax(0,1fr)] gap-4 px-4 pb-8 lg:grid-cols-2 lg:px-8">
 	{#each data.budgets as b, i (b.id)}
 		<section
 			class="rounded-xl border bg-card {b.archived ? 'opacity-60' : ''}"

@@ -17,7 +17,7 @@ test('a monthly rule starting in the past creates its due expenses', async ({ pa
 	await sheet.getByLabel('À partir du').fill(start);
 	await sheet.getByRole('button', { name: 'Enregistrer' }).click();
 	await expect(page.getByText(/Règle enregistrée · 3 élément/)).toBeVisible();
-	await expect(page.getByTestId('rule-row')).toContainText('Loyer appartement');
+	await expect(page.getByTestId('rule-row').filter({ hasText: 'Loyer appartement' })).toBeVisible();
 	await page.goto('/depenses?periode=tout&q=Loyer appartement');
 	await expect(page.getByTestId('expense-row')).toHaveCount(3);
 });

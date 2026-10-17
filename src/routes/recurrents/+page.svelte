@@ -84,7 +84,7 @@
 	{/snippet}
 </PageHeader>
 
-<div class="grid gap-6 px-4 pb-8 lg:grid-cols-2 lg:px-8">
+<div class="grid grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-8 lg:grid-cols-2 lg:px-8">
 	{#each groups as g (g.kind)}
 		<section>
 			<div class="mb-2 flex items-center justify-between">

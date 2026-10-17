@@ -195,7 +195,7 @@
 	</div>
 </div>
 
-<div class="grid gap-6 px-4 pb-10 lg:grid-cols-2 lg:px-8">
+<div class="grid grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-10 lg:grid-cols-2 lg:px-8">
 	<section class="rounded-xl border bg-card p-4" data-testid="chart-budgets">
 		<div class="mb-1 flex items-center justify-between gap-2">
 			<h2 class="font-semibold">
@@ -294,7 +294,7 @@
 	<section class="rounded-xl border bg-card p-4 lg:col-span-2" data-testid="chart-places">
 		<h2 class="mb-3 font-semibold">{t.stats.places}</h2>
 		{#if data.places.length}
-			<div class="grid gap-4 lg:grid-cols-2">
+			<div class="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
 				<div>
 					<div style="height: {barsHeight(placeItems.length)}">
 						<ChartView

@@ -3,7 +3,8 @@ import type { SessionUser } from './auth';
 import type { ExpenseInput } from './expenses';
 import { listBudgets } from './budgets';
 import { spentByBudget } from './stats';
-import { periodFor } from '../periods';
+import { plannedForPeriod } from './planned';
+import { periodFor, todayISO } from '../periods';
 import { alertMessageClient } from '../alert-text';
 
 export type AlertStatus = 'none' | 'ok' | 'warning' | 'over';
@@ -22,21 +23,35 @@ export type BudgetStatus = {
 	icon: string;
 	color: string;
 	alertThreshold: number;
+	/** Real spending: entries dated up to today. */
 	spentCents: number;
+	/** Still to come this period: future-dated entries and upcoming recurring occurrences. */
+	plannedCents: number;
 	limitCents: number;
 	pct: number;
+	/** (spent + planned) / limit. */
+	projectedPct: number;
+	/** Follows the real spending only, so "85 % utilisé" stays true. */
 	status: AlertStatus;
+	projectedStatus: AlertStatus;
 };
 
-/** Spending vs limit for every active budget in a period. */
+/** Spending vs limit for every active budget in a period, real and planned. */
 export function budgetStatuses(
 	db: DB,
 	userId: number,
-	period: { start: string; end: string }
+	period: { start: string; end: string },
+	today = todayISO()
 ): BudgetStatus[] {
-	const spent = spentByBudget(db, userId, { from: period.start, to: period.end });
+	const spent = spentByBudget(db, userId, {
+		from: period.start,
+		to: period.end < today ? period.end : today
+	});
+	const planned = plannedForPeriod(db, userId, period, today).byBudget;
 	return listBudgets(db, userId, period.start).map((b) => {
 		const spentCents = spent.get(b.id) ?? 0;
+		const plannedCents = planned.get(b.id) ?? 0;
+		const pct = (cents: number) => (b.limitCents > 0 ? (cents / b.limitCents) * 100 : 0);
 		return {
 			id: b.id,
 			name: b.name,
@@ -44,9 +59,12 @@ export function budgetStatuses(
 			color: b.color,
 			alertThreshold: b.alertThreshold,
 			spentCents,
+			plannedCents,
 			limitCents: b.limitCents,
-			pct: b.limitCents > 0 ? (spentCents / b.limitCents) * 100 : 0,
-			status: statusFor(spentCents, b.limitCents, b.alertThreshold)
+			pct: pct(spentCents),
+			projectedPct: pct(spentCents + plannedCents),
+			status: statusFor(spentCents, b.limitCents, b.alertThreshold),
+			projectedStatus: statusFor(spentCents + plannedCents, b.limitCents, b.alertThreshold)
 		};
 	});
 }

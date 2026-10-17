@@ -10,7 +10,7 @@ import { addDays, daysInMonth, isIsoDate, todayISO } from '../periods';
 import { t } from '../i18n/fr';
 
 export type Frequency = 'monthly' | 'weekly' | 'yearly';
-type Schedule = { frequency: Frequency; dayOfMonth: number; startDate: string };
+export type Schedule = { frequency: Frequency; dayOfMonth: number; startDate: string };
 
 export type RuleInput = {
 	kind: 'expense' | 'income';

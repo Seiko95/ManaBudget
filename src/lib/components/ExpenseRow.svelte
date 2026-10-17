@@ -2,6 +2,7 @@
 	import Camera from '@lucide/svelte/icons/camera';
 	import Repeat from '@lucide/svelte/icons/repeat';
 	import { formatCents } from '$lib/format';
+	import { todayISO } from '$lib/periods';
 	import type { ListedExpense } from '$lib/server/expenses';
 	import { t } from '$lib/i18n/fr';
 
@@ -28,7 +29,13 @@
 		{/each}
 	</span>
 	<div class="min-w-0 flex-1">
-		<p class="truncate font-medium">{title}</p>
+		<p class="truncate font-medium">
+			{title}
+			{#if e.date > todayISO()}<span
+					class="ml-1 rounded-full border border-dashed px-1.5 text-xs font-normal text-muted-foreground"
+					>{t.expenses.plannedBadge}</span
+				>{/if}
+		</p>
 		<p class="flex items-center gap-1.5 truncate text-sm text-muted-foreground">
 			{#if showDate}<span>{e.date.slice(8, 10)}/{e.date.slice(5, 7)}</span> ·{/if}
 			<span class="truncate">{subtitle}</span>

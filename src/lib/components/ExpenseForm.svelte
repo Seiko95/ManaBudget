@@ -189,6 +189,11 @@
 		<div class="space-y-1.5">
 			<Label for="{formId}-date">{t.expenses.date}</Label>
 			<Input id="{formId}-date" type="date" bind:value={date} required class="h-11" />
+			{#if date > todayISO()}
+				<p class="text-xs text-muted-foreground" data-testid="future-hint">
+					{t.expenses.futureHint}
+				</p>
+			{/if}
 		</div>
 	</div>
 
