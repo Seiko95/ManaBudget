@@ -336,6 +336,29 @@ describe('user B cannot reach user A’s data through the routes', () => {
 				)
 			)
 		).toBe(404);
+		const bCategory = listBudgets(db, B.id, '2026-10-01')[0].categories[0].id;
+		expect(
+			await statusOf(() =>
+				budgetsPage.actions.deleteCategory(
+					event(B, { form: { id: String(ids.category), target: String(bCategory) } })
+				)
+			)
+		).toBe(404);
+		expect(
+			await statusOf(() =>
+				budgetsPage.actions.deleteBudget(
+					event(B, { form: { id: String(ids.budget), target: String(bCategory) } })
+				)
+			)
+		).toBe(404);
+		// B can't move their own data into A's category either
+		expect(
+			await statusOf(() =>
+				budgetsPage.actions.deleteCategory(
+					event(B, { form: { id: String(bCategory), target: String(ids.category) } })
+				)
+			)
+		).toBe(404);
 	});
 
 	it('lists, dashboard and statistics show none of A’s numbers', async () => {

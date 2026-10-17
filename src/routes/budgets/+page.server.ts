@@ -1,8 +1,11 @@
 import { fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import {
+	categoryUsage,
 	createBudget,
 	createCategory,
+	deleteBudget,
+	deleteCategory,
 	listBudgets,
 	moveBudget,
 	moveCategory,
@@ -24,10 +27,16 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const user = requireUser(locals);
 	const period = selectedPeriod(url, user);
 	const showArchived = url.searchParams.get('archives') === '1';
+	const db = getDb();
+	const usage = categoryUsage(db, user.id);
 	return {
 		period,
 		showArchived,
-		budgets: listBudgets(getDb(), user.id, period.start, { includeArchived: showArchived })
+		budgets: listBudgets(db, user.id, period.start, { includeArchived: showArchived }),
+		usage: {
+			byCategory: Object.fromEntries(usage.byCategory),
+			byBudget: Object.fromEntries(usage.byBudget)
+		}
 	};
 };
 
@@ -121,5 +130,23 @@ export const actions: Actions = {
 		const archived = bool(form, 'archived');
 		setCategoryArchived(getDb(), user.id, parseId(str(form, 'id')), archived);
 		return { success: archived ? t.budgets.archivedDone : t.budgets.unarchivedDone };
+	},
+	deleteBudget: async ({ request, locals }) => {
+		const user = requireUser(locals);
+		const form = await request.formData();
+		deleteBudget(getDb(), user.id, parseId(str(form, 'id')), target(form));
+		return { success: t.budgets.deleted };
+	},
+	deleteCategory: async ({ request, locals }) => {
+		const user = requireUser(locals);
+		const form = await request.formData();
+		deleteCategory(getDb(), user.id, parseId(str(form, 'id')), target(form));
+		return { success: t.budgets.deleted };
 	}
 };
+
+/** The replacement category for a delete, if one was chosen. */
+function target(form: FormData): number | null {
+	const raw = str(form, 'target');
+	return raw ? parseId(raw) : null;
+}

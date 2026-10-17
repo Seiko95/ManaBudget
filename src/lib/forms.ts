@@ -22,8 +22,10 @@ export function enhanceWithToast(opts: Opts = {}): SubmitFunction {
 				if (typeof data?.success === 'string') toast.success(data.success);
 				if (Array.isArray(data?.alerts))
 					for (const a of data.alerts as string[]) toast.warning(a, { duration: 8000 });
-				opts.onSuccess?.(data);
+				// Reset before onSuccess: callers close their sheet there by nulling the state the
+				// form's inputs are bound to, and a reset afterwards would write into that null
 				await update({ reset: opts.reset ?? true });
+				opts.onSuccess?.(data);
 			} else if (result.type === 'failure') {
 				const msg = (result.data as { error?: string } | undefined)?.error;
 				toast.error(msg ?? t.common.error);

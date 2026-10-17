@@ -79,7 +79,22 @@ export const fr = {
 		archivedDone: 'Archivé',
 		unarchivedDone: 'Désarchivé',
 		nameRequired: 'Le nom est obligatoire',
-		empty: 'Aucune catégorie'
+		empty: 'Aucune catégorie',
+		deleteBudget: 'Supprimer le budget',
+		deleteCategory: 'Supprimer la catégorie',
+		deleteTitle: 'Supprimer « {name} » ?',
+		deleteBudgetUnused:
+			'Le budget, ses catégories et l’historique de ses limites sont supprimés définitivement.',
+		deleteCategoryUnused: 'La catégorie est supprimée définitivement.',
+		deleteUsed:
+			'Elle contient {splits} ligne(s) de dépense et {rules} récurrence(s). Elles seront déplacées vers la catégorie choisie ci-dessous, puis la suppression sera définitive.',
+		deleteBudgetUsed:
+			'Ses catégories contiennent {splits} ligne(s) de dépense et {rules} récurrence(s). Elles seront déplacées vers la catégorie choisie ci-dessous, puis la suppression sera définitive.',
+		moveTo: 'Déplacer vers',
+		noReplacement: 'Aucune autre catégorie disponible : créez-en une avant de supprimer.',
+		replacementRequired: 'Choisissez la catégorie qui recevra les dépenses',
+		replacementInvalid: 'Choisissez une catégorie en dehors de ce que vous supprimez',
+		deleted: 'Supprimé'
 	},
 	places: {
 		title: 'Lieux',

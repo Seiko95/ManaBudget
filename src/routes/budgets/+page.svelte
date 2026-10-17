@@ -7,6 +7,9 @@
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import CategorySelect from '$lib/components/CategorySelect.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PeriodSwitcher from '$lib/components/PeriodSwitcher.svelte';
 	import FormSheet from '$lib/components/FormSheet.svelte';
@@ -41,6 +44,53 @@
 	let budgetForm = $state<BudgetForm | null>(null);
 	let categoryForm = $state<CategoryForm | null>(null);
 	let busy = $state(false);
+
+	type Deleting = { kind: 'budget' | 'category'; id: number; name: string; budgetId: number };
+	let deleting = $state<Deleting | null>(null);
+	let deleteTarget = $state<number | null>(null);
+
+	const deleteUsage = $derived(
+		deleting
+			? ((deleting.kind === 'budget'
+					? data.usage.byBudget[deleting.id]
+					: data.usage.byCategory[deleting.id]) ?? null)
+			: null
+	);
+	// Where the expenses can go: active categories outside what is being deleted
+	const deleteOptions = $derived(
+		deleting
+			? data.budgets
+					.filter((b) => !b.archived && !(deleting!.kind === 'budget' && b.id === deleting!.id))
+					.map((b) => ({
+						...b,
+						categories: b.categories.filter(
+							(c) => !c.archived && !(deleting!.kind === 'category' && c.id === deleting!.id)
+						)
+					}))
+					.filter((b) => b.categories.length)
+			: []
+	);
+
+	function askDelete(d: Deleting) {
+		deleting = d;
+		const own = data.budgets.find((b) => b.id === d.budgetId);
+		// Default to a sibling category when deleting a category, else the first available one
+		const options = deleteOptions;
+		const sibling =
+			d.kind === 'category'
+				? own?.categories.find((c) => c.id !== d.id && !c.archived)?.id
+				: undefined;
+		deleteTarget = sibling ?? options[0]?.categories[0]?.id ?? null;
+	}
+
+	function deleteMessage(d: Deleting): string {
+		const u = deleteUsage;
+		if (!u)
+			return d.kind === 'budget' ? t.budgets.deleteBudgetUnused : t.budgets.deleteCategoryUnused;
+		return (d.kind === 'budget' ? t.budgets.deleteBudgetUsed : t.budgets.deleteUsed)
+			.replace('{splits}', String(u.splits))
+			.replace('{rules}', String(u.rules));
+	}
 
 	function newBudget() {
 		const used = new Set(data.budgets.map((b) => b.color));
@@ -154,6 +204,15 @@
 							{#if b.archived}<ArchiveRestore />{:else}<Archive />{/if}
 						</Button>
 					</form>
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						aria-label={t.budgets.deleteBudget}
+						title={t.budgets.deleteBudget}
+						onclick={() => askDelete({ kind: 'budget', id: b.id, name: b.name, budgetId: b.id })}
+					>
+						<Trash2 />
+					</Button>
 				</div>
 			</header>
 			<ul class="divide-y">
@@ -214,6 +273,16 @@
 								{#if c.archived}<ArchiveRestore />{:else}<Archive />{/if}
 							</Button>
 						</form>
+						<Button
+							variant="ghost"
+							size="icon-xs"
+							aria-label={t.budgets.deleteCategory}
+							title={t.budgets.deleteCategory}
+							onclick={() =>
+								askDelete({ kind: 'category', id: c.id, name: c.name, budgetId: c.budgetId })}
+						>
+							<Trash2 />
+						</Button>
 					</li>
 				{:else}
 					<li class="px-4 py-3 text-sm text-muted-foreground">{t.budgets.empty}</li>
@@ -350,3 +419,57 @@
 		>
 	{/snippet}
 </FormSheet>
+
+<Dialog.Root
+	open={deleting !== null}
+	onOpenChange={(o) => {
+		if (!o) deleting = null;
+	}}
+>
+	<Dialog.Content>
+		{#if deleting}
+			<Dialog.Header>
+				<Dialog.Title>{t.budgets.deleteTitle.replace('{name}', deleting.name)}</Dialog.Title>
+				<Dialog.Description>{deleteMessage(deleting)}</Dialog.Description>
+			</Dialog.Header>
+			<form
+				id="delete-form"
+				method="POST"
+				action={deleting.kind === 'budget' ? '?/deleteBudget' : '?/deleteCategory'}
+				use:enhance={enhanceWithToast({
+					busy: (v) => (busy = v),
+					onSuccess: () => (deleting = null)
+				})}
+			>
+				<input type="hidden" name="id" value={deleting.id} />
+				{#if deleteUsage}
+					{#if deleteOptions.length}
+						<div class="space-y-1.5">
+							<Label for="delete-target">{t.budgets.moveTo}</Label>
+							<CategorySelect
+								id="delete-target"
+								name="target"
+								budgets={deleteOptions}
+								allowNone={false}
+								bind:value={deleteTarget}
+							/>
+						</div>
+					{:else}
+						<p class="text-sm text-destructive">{t.budgets.noReplacement}</p>
+					{/if}
+				{/if}
+			</form>
+			<Dialog.Footer>
+				<Button variant="outline" onclick={() => (deleting = null)}>{t.common.cancel}</Button>
+				<Button
+					type="submit"
+					form="delete-form"
+					variant="destructive"
+					disabled={busy || (!!deleteUsage && !deleteTarget)}
+				>
+					{t.common.delete}
+				</Button>
+			</Dialog.Footer>
+		{/if}
+	</Dialog.Content>
+</Dialog.Root>

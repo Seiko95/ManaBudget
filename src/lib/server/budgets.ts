@@ -1,7 +1,17 @@
-import { and, asc, desc, eq, lte, max, sql } from 'drizzle-orm';
+import { error } from '@sveltejs/kit';
+import { and, asc, desc, eq, inArray, lte, max, sql } from 'drizzle-orm';
 import type { DB } from './db';
-import { budgetLimits, budgets, categories, type Budget, type Category } from './db/schema';
+import {
+	budgetLimits,
+	budgets,
+	categories,
+	expenseSplits,
+	recurringRules,
+	type Budget,
+	type Category
+} from './db/schema';
 import { notFoundUnless, owned, ownedById } from './scope';
+import { t } from '../i18n/fr';
 
 export type BudgetWithCategories = Budget & { limitCents: number; categories: Category[] };
 
@@ -256,6 +266,133 @@ export function moveCategory(db: DB, userId: number, id: number, dir: 'up' | 'do
 				.where(ownedById(categories, userId, rid))
 				.run()
 		);
+	});
+}
+
+export type Usage = { splits: number; rules: number };
+
+/** How many expense splits and recurring rules point at each category, and per budget. */
+export function categoryUsage(db: DB, userId: number) {
+	const byCategory = new Map<number, Usage>();
+	const bump = (id: number, key: keyof Usage, n: number) => {
+		const u = byCategory.get(id) ?? { splits: 0, rules: 0 };
+		u[key] += n;
+		byCategory.set(id, u);
+	};
+	for (const r of db
+		.select({ id: expenseSplits.categoryId, n: sql<number>`count(*)` })
+		.from(expenseSplits)
+		.where(owned(expenseSplits, userId))
+		.groupBy(expenseSplits.categoryId)
+		.all())
+		bump(r.id, 'splits', r.n);
+	for (const r of db
+		.select({ id: recurringRules.categoryId, n: sql<number>`count(*)` })
+		.from(recurringRules)
+		.where(owned(recurringRules, userId))
+		.groupBy(recurringRules.categoryId)
+		.all())
+		if (r.id != null) bump(r.id, 'rules', r.n);
+
+	const byBudget = new Map<number, Usage>();
+	for (const c of db
+		.select({ id: categories.id, budgetId: categories.budgetId })
+		.from(categories)
+		.where(owned(categories, userId))
+		.all()) {
+		const u = byCategory.get(c.id);
+		if (!u) continue;
+		const b = byBudget.get(c.budgetId) ?? { splits: 0, rules: 0 };
+		byBudget.set(c.budgetId, { splits: b.splits + u.splits, rules: b.rules + u.rules });
+	}
+	return { byCategory, byBudget };
+}
+
+/**
+ * Moves everything filed under `ids` to `targetId` (required when anything is), so deleting
+ * the categories never deletes expenses or recurring rules through the FK cascade. A split
+ * whose expense already has a split on the target is merged into it.
+ */
+function moveOut(db: DB, userId: number, ids: number[], targetId: number | null) {
+	if (targetId != null) {
+		if (ids.includes(targetId)) error(400, t.budgets.replacementInvalid);
+		getCategory(db, userId, targetId);
+	}
+	if (!ids.length) return;
+	const splits = db
+		.select()
+		.from(expenseSplits)
+		.where(owned(expenseSplits, userId, inArray(expenseSplits.categoryId, ids)))
+		.all();
+	const rules = db
+		.select({ id: recurringRules.id })
+		.from(recurringRules)
+		.where(owned(recurringRules, userId, inArray(recurringRules.categoryId, ids)))
+		.all();
+	if (!splits.length && !rules.length) return;
+	if (targetId == null) error(400, t.budgets.replacementRequired);
+
+	for (const s of splits) {
+		const existing = db
+			.select()
+			.from(expenseSplits)
+			.where(
+				owned(
+					expenseSplits,
+					userId,
+					eq(expenseSplits.expenseId, s.expenseId),
+					eq(expenseSplits.categoryId, targetId)
+				)
+			)
+			.get();
+		if (existing) {
+			db.update(expenseSplits)
+				.set({ amountCents: existing.amountCents + s.amountCents })
+				.where(ownedById(expenseSplits, userId, existing.id))
+				.run();
+			db.delete(expenseSplits)
+				.where(ownedById(expenseSplits, userId, s.id))
+				.run();
+		} else {
+			db.update(expenseSplits)
+				.set({ categoryId: targetId })
+				.where(ownedById(expenseSplits, userId, s.id))
+				.run();
+		}
+	}
+	db.update(recurringRules)
+		.set({ categoryId: targetId })
+		.where(owned(recurringRules, userId, inArray(recurringRules.categoryId, ids)))
+		.run();
+}
+
+/** Deletes a category for good, moving its expenses and recurring rules to `targetId` first. */
+export function deleteCategory(db: DB, userId: number, id: number, targetId: number | null) {
+	getCategory(db, userId, id);
+	db.transaction((tx) => {
+		const d = tx as unknown as DB;
+		moveOut(d, userId, [id], targetId);
+		d.delete(categories)
+			.where(ownedById(categories, userId, id))
+			.run();
+	});
+}
+
+/** Deletes a budget with its categories and limits, moving their expenses and rules first. */
+export function deleteBudget(db: DB, userId: number, id: number, targetId: number | null) {
+	getBudget(db, userId, id);
+	db.transaction((tx) => {
+		const d = tx as unknown as DB;
+		const ids = d
+			.select({ id: categories.id })
+			.from(categories)
+			.where(owned(categories, userId, eq(categories.budgetId, id)))
+			.all()
+			.map((c) => c.id);
+		moveOut(d, userId, ids, targetId);
+		d.delete(budgets)
+			.where(ownedById(budgets, userId, id))
+			.run();
 	});
 }
 
