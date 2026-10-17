@@ -4,6 +4,7 @@ import {
 	periodTotals,
 	spentByBudget,
 	spentByCategory,
+	spentByPlace,
 	totalsByPlace
 } from './stats';
 import { listBudgets } from './budgets';
@@ -118,5 +119,30 @@ describe('stats', () => {
 		expect(rows).toEqual([
 			{ placeId: shop.id, name: 'Carrefour', lat: 48.85, lng: 2.35, total: 4500, count: 2 }
 		]);
+	});
+
+	it('spent per place for a period, places without GPS included', async () => {
+		const { db, u, shop } = await seed();
+		const noGps = createPlace(db, u.id, {
+			name: 'Marché',
+			address: '',
+			lat: null,
+			lng: null,
+			defaultCategoryId: null
+		});
+		const courses = listBudgets(db, u.id, '2026-10-01')[0].categories[0];
+		saveExpense(db, u.id, {
+			date: '2026-10-20',
+			totalCents: 800,
+			placeId: noGps.id,
+			description: '',
+			splits: [{ categoryId: courses.id, amountCents: 800 }],
+			tags: []
+		});
+		const byPlace = spentByPlace(db, u.id, oct);
+		expect(byPlace.get(shop.id)).toBe(4500);
+		expect(byPlace.get(noGps.id)).toBe(800);
+		expect(byPlace.size).toBe(2);
+		expect(spentByPlace(db, u.id, { from: '2026-11-01', to: '2026-11-30' }).size).toBe(0);
 	});
 });

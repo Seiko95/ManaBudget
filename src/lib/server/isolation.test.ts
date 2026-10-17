@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setDb, type DB } from './db';
 import { testDb, makeUser } from './test/db';
 import { listBudgets } from './budgets';
-import { createPlace } from './places';
+import { createPlace, getPlace } from './places';
 import { saveExpense, getExpense } from './expenses';
 import { addPhotos } from './photos';
 import { saveIncome, getIncome } from './incomes';
@@ -215,6 +215,9 @@ describe('user B cannot reach user A’s data through the routes', () => {
 				placesPage.actions.archive(event(B, { form: { id: String(ids.place), archived: 'true' } }))
 			)
 		).toBe(404);
+		expect(
+			await statusOf(() => placesPage.actions.delete(event(B, { form: { id: String(ids.place) } })))
+		).toBe(404);
 		const page = (await placesPage.load(
 			event(B, { url: 'http://localhost/lieux?archives=1' })
 		)) as { places: unknown[] };
@@ -366,6 +369,7 @@ describe('user B cannot reach user A’s data through the routes', () => {
 		expect(e.photos).toHaveLength(1);
 		expect(getIncome(db, A.id, ids.income).amountCents).toBe(100000);
 		expect(getRule(db, A.id, ids.rule).description).toBe('règle A');
+		expect(getPlace(db, A.id, ids.place).archived).toBe(false);
 		const b = listBudgets(db, A.id, '2026-10-01', { includeArchived: true }).find(
 			(x) => x.id === ids.budget
 		)!;

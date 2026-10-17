@@ -108,7 +108,16 @@ export const fr = {
 		geocodingDisabled: 'La recherche d’adresse est désactivée sur ce serveur.',
 		geocodingError: 'La recherche d’adresse a échoué',
 		distance: 'à {d}',
-		archiveConfirm: 'Archiver « {name} » ? Les dépenses passées sont conservées.'
+		archiveConfirm: 'Archiver « {name} » ? Les dépenses passées sont conservées.',
+		deletePlace: 'Supprimer le lieu',
+		deleteTitle: 'Supprimer « {name} » ?',
+		deleteConfirm:
+			'Le lieu est supprimé définitivement. Les dépenses et les récurrences associées sont conservées, mais sans lieu.',
+		deleted: 'Lieu supprimé',
+		spentIn: '{period} : {amount}',
+		nothingSpentIn: '{period} : rien dépensé',
+		clusterCount: '{n} lieux',
+		clusterMore: '+ {n} autre(s)'
 	},
 	expenses: {
 		title: 'Dépenses',

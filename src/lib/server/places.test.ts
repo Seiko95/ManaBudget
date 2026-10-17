@@ -5,8 +5,11 @@ import {
 	setPlaceArchived,
 	updatePlace,
 	getPlace,
-	validatePlaceInput
+	validatePlaceInput,
+	deletePlace
 } from './places';
+import { getExpense, saveExpense } from './expenses';
+import { createRule, getRule } from './recurring';
 import { listBudgets } from './budgets';
 import { makeUser, testDb } from './test/db';
 
@@ -79,5 +82,50 @@ describe('validatePlaceInput', () => {
 		expect(validatePlaceInput({ name: 'A', lat: 45, lng: null })).toBeTruthy();
 		expect(validatePlaceInput({ name: 'A', lat: 45, lng: 2 })).toBeNull();
 		expect(validatePlaceInput({ name: 'A', lat: null, lng: null })).toBeNull();
+	});
+
+	it('deletes a place for good; its expenses and recurring rules lose the place only', async () => {
+		const db = testDb();
+		const u = await makeUser(db);
+		const other = await makeUser(db);
+		const courses = listBudgets(db, u.id, '2026-10-01')[0].categories[0];
+		const p = createPlace(db, u.id, {
+			name: 'Carrefour',
+			address: '',
+			lat: 48.85,
+			lng: 2.35,
+			defaultCategoryId: null
+		});
+		const expenseId = saveExpense(db, u.id, {
+			date: '2026-10-02',
+			totalCents: 1200,
+			placeId: p.id,
+			description: 'pain',
+			splits: [{ categoryId: courses.id, amountCents: 1200 }],
+			tags: []
+		});
+		const rule = createRule(db, u.id, {
+			kind: 'expense',
+			amountCents: 500,
+			categoryId: courses.id,
+			placeId: p.id,
+			source: '',
+			description: '',
+			frequency: 'monthly',
+			dayOfMonth: 1,
+			startDate: '2099-01-01',
+			endDate: null,
+			active: true
+		});
+
+		expect(() => deletePlace(db, other.id, p.id)).toThrow();
+		expect(getPlace(db, u.id, p.id).name).toBe('Carrefour');
+
+		deletePlace(db, u.id, p.id);
+		expect(() => getPlace(db, u.id, p.id)).toThrow();
+		const e = getExpense(db, u.id, expenseId);
+		expect(e.placeId).toBeNull();
+		expect(e.totalCents).toBe(1200);
+		expect(getRule(db, u.id, rule.id).placeId).toBeNull();
 	});
 });

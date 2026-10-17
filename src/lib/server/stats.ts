@@ -22,6 +22,25 @@ export function spentByBudget(db: DB, userId: number, r: Range): Map<number, num
 	return new Map(rows.map((x) => [x.budgetId, x.total]));
 }
 
+/** Spent per place (cents) in a date range. */
+export function spentByPlace(db: DB, userId: number, r: Range): Map<number, number> {
+	const rows = db
+		.select({ placeId: expenses.placeId, total: sql<number>`sum(${expenses.totalCents})` })
+		.from(expenses)
+		.where(
+			owned(
+				expenses,
+				userId,
+				gte(expenses.date, r.from),
+				lte(expenses.date, r.to),
+				isNotNull(expenses.placeId)
+			)
+		)
+		.groupBy(expenses.placeId)
+		.all();
+	return new Map(rows.map((x) => [x.placeId!, x.total]));
+}
+
 /** Spent per category (cents) in a date range, from splits. */
 export function spentByCategory(db: DB, userId: number, r: Range): Map<number, number> {
 	const rows = db

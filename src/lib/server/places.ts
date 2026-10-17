@@ -75,3 +75,11 @@ export function setPlaceArchived(db: DB, userId: number, id: number, archived: b
 		.where(ownedById(places, userId, id))
 		.run();
 }
+
+/** Deletes for good. Past expenses and recurring rules keep everything but the place (FK set null). */
+export function deletePlace(db: DB, userId: number, id: number) {
+	getPlace(db, userId, id);
+	db.delete(places)
+		.where(ownedById(places, userId, id))
+		.run();
+}

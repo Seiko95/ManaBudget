@@ -8,15 +8,18 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import MapPin from '@lucide/svelte/icons/map-pin';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { toast } from 'svelte-sonner';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import MapView from '$lib/components/MapView.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
+	import ConfirmAction from '$lib/components/ConfirmAction.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Switch } from '$lib/components/ui/switch';
 	import { enhanceWithToast } from '$lib/forms';
-	import { formatDistance } from '$lib/format';
+	import { formatCents, formatDistance } from '$lib/format';
+	import { periodLabelText } from '$lib/periods';
 	import { sortByDistance } from '$lib/geo';
 	import { geo, locateIfGranted } from '$lib/geolocation.svelte';
 	import type { PlaceOption } from '$lib/types';
@@ -40,8 +43,24 @@
 	const markers = $derived(
 		data.places
 			.filter((p) => p.lat != null && p.lng != null && !p.archived)
-			.map((p) => ({ lat: p.lat!, lng: p.lng!, label: p.name }))
+			.map((p) => {
+				const spent = data.spent[p.id] ?? 0;
+				return {
+					lat: p.lat!,
+					lng: p.lng!,
+					label: p.name,
+					detail: spentText(spent),
+					amountCents: spent
+				};
+			})
 	);
+
+	function spentText(cents: number) {
+		const period = periodLabelText(data.period.label);
+		return cents
+			? t.places.spentIn.replace('{period}', period).replace('{amount}', formatCents(cents))
+			: t.places.nothingSpentIn.replace('{period}', period);
+	}
 
 	function open(place: Partial<PlaceOption> | null) {
 		editing = place;
@@ -64,7 +83,9 @@
 	{/snippet}
 </PageHeader>
 
-<div class="grid gap-4 px-4 pb-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:px-8">
+<div
+	class="grid grid-cols-[minmax(0,1fr)] gap-4 px-4 pb-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:px-8"
+>
 	<div class="lg:sticky lg:top-4 lg:self-start">
 		<MapView
 			{markers}
@@ -97,7 +118,7 @@
 							</p>
 							<p class="truncate text-sm text-muted-foreground">
 								{#if p.distance != null}{formatDistance(p.distance)} ·
-								{/if}{p.address || t.places.noPosition}
+								{/if}{p.address || (p.lat == null ? t.places.noPosition : '')}
 							</p>
 							{#if p.defaultCategoryId}
 								<p class="text-xs text-muted-foreground">
@@ -105,6 +126,12 @@
 								</p>
 							{/if}
 						</div>
+						{#if data.spent[p.id]}
+							<span
+								class="shrink-0 text-sm font-medium tabular-nums"
+								title={spentText(data.spent[p.id])}>{formatCents(data.spent[p.id])}</span
+							>
+						{/if}
 						<Button
 							variant="ghost"
 							size="icon-sm"
@@ -126,6 +153,17 @@
 								{#if p.archived}<ArchiveRestore />{:else}<Archive />{/if}
 							</Button>
 						</form>
+						<ConfirmAction
+							action="?/delete"
+							fields={{ id: p.id }}
+							title={t.places.deleteTitle.replace('{name}', p.name)}
+							message={t.places.deleteConfirm}
+							variant="ghost"
+							size="icon-sm"
+							submit={enhanceWithToast()}
+						>
+							<Trash2 /><span class="sr-only">{t.places.deletePlace}</span>
+						</ConfirmAction>
 					</li>
 				{/each}
 			</ul>

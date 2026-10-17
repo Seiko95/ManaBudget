@@ -134,7 +134,9 @@
 		data.places.map((p) => ({
 			lat: p.lat,
 			lng: p.lng,
-			label: `${p.name} : ${formatCents(p.total)}`,
+			label: p.name,
+			detail: formatCents(p.total),
+			amountCents: p.total,
 			// Area proportional to the amount
 			radius: 6 + 22 * Math.sqrt(p.total / maxPlace),
 			color: '#2a78d6',
