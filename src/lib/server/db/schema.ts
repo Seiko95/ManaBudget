@@ -234,6 +234,25 @@ export const incomes = sqliteTable(
 	]
 );
 
+/**
+ * Money moved between the main balance and savings ("Épargne"). A deposit lowers the
+ * balance and raises savings; a withdrawal does the opposite. Never counted as spending.
+ */
+export const savingsTransfers = sqliteTable(
+	'savings_transfers',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		userId: userId(),
+		date: text('date').notNull(),
+		direction: text('direction', { enum: ['deposit', 'withdrawal'] }).notNull(),
+		amountCents: integer('amount_cents').notNull(),
+		description: text('description').notNull().default(''),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [index('savings_user_date_idx').on(t.userId, t.date)]
+);
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type Budget = typeof budgets.$inferSelect;
@@ -245,3 +264,4 @@ export type Tag = typeof tags.$inferSelect;
 export type Photo = typeof photos.$inferSelect;
 export type Income = typeof incomes.$inferSelect;
 export type RecurringRule = typeof recurringRules.$inferSelect;
+export type SavingsTransfer = typeof savingsTransfers.$inferSelect;

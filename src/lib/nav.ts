@@ -2,6 +2,7 @@ import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 import Receipt from '@lucide/svelte/icons/receipt';
 import Wallet from '@lucide/svelte/icons/wallet';
 import PiggyBank from '@lucide/svelte/icons/piggy-bank';
+import HandCoins from '@lucide/svelte/icons/hand-coins';
 import MapPin from '@lucide/svelte/icons/map-pin';
 import Repeat from '@lucide/svelte/icons/repeat';
 import ChartBar from '@lucide/svelte/icons/chart-bar';
@@ -23,6 +24,7 @@ export const NAV: NavItem[] = [
 	{ href: '/', label: t.nav.dashboard, icon: LayoutDashboard, primary: true },
 	{ href: '/depenses', label: t.nav.expenses, icon: Receipt, primary: true },
 	{ href: '/revenus', label: t.nav.incomes, icon: Wallet },
+	{ href: '/epargne', label: t.nav.savings, icon: HandCoins },
 	{ href: '/budgets', label: t.nav.budgets, icon: PiggyBank },
 	{ href: '/lieux', label: t.nav.places, icon: MapPin },
 	{ href: '/recurrents', label: t.nav.recurring, icon: Repeat },

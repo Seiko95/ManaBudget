@@ -16,6 +16,7 @@ import { saveExpense, getExpense } from './expenses';
 import { addPhotos } from './photos';
 import { saveIncome, getIncome } from './incomes';
 import { createRule, getRule } from './recurring';
+import { saveTransfer, getTransfer } from './savings';
 import type { SessionUser } from './auth';
 
 import * as expenseApi from '../../routes/api/expenses/[id]/+server';
@@ -26,6 +27,7 @@ import * as photoRoute from '../../routes/photos/[id]/+server';
 import * as expenseDetail from '../../routes/depenses/[id]/+page.server';
 import * as expenseList from '../../routes/depenses/+page.server';
 import * as incomesPage from '../../routes/revenus/+page.server';
+import * as savingsPage from '../../routes/epargne/+page.server';
 import * as recurringPage from '../../routes/recurrents/+page.server';
 import * as budgetsPage from '../../routes/budgets/+page.server';
 import * as placesPage from '../../routes/lieux/+page.server';
@@ -37,7 +39,7 @@ let db: DB;
 let A: SessionUser;
 let B: SessionUser;
 const ids = {} as Record<
-	'expense' | 'photo' | 'place' | 'income' | 'rule' | 'budget' | 'category',
+	'expense' | 'photo' | 'place' | 'income' | 'rule' | 'budget' | 'category' | 'transfer',
 	number
 >;
 
@@ -83,6 +85,12 @@ beforeAll(async () => {
 		amountCents: 100000,
 		source: 'Salaire A',
 		description: ''
+	});
+	ids.transfer = saveTransfer(db, A.id, {
+		date: '2026-01-01',
+		direction: 'deposit',
+		amountCents: 7777,
+		description: 'épargne A'
 	});
 	ids.rule = createRule(db, A.id, {
 		kind: 'expense',
@@ -267,6 +275,25 @@ describe('user B cannot reach user A’s data through the routes', () => {
 		).toBe(404);
 		expect(
 			await statusOf(() =>
+				savingsPage.actions.save(
+					event(B, {
+						form: {
+							id: String(ids.transfer),
+							direction: 'withdrawal',
+							amount: '1',
+							date: '2026-01-01'
+						}
+					})
+				)
+			)
+		).toBe(404);
+		expect(
+			await statusOf(() =>
+				savingsPage.actions.delete(event(B, { form: { id: String(ids.transfer) } }))
+			)
+		).toBe(404);
+		expect(
+			await statusOf(() =>
 				recurringPage.actions.delete(event(B, { form: { id: String(ids.rule) } }))
 			)
 		).toBe(404);
@@ -367,11 +394,21 @@ describe('user B cannot reach user A’s data through the routes', () => {
 		expect(inc.sources).toHaveLength(0);
 		const rec = (await recurringPage.load(event(B))) as { rules: unknown[] };
 		expect(rec.rules).toHaveLength(0);
+		const sav = (await savingsPage.load(event(B))) as {
+			total: number;
+			available: number;
+			transfers: unknown[];
+		};
+		expect(sav).toEqual({ total: 0, available: 0, transfers: [] });
 		const dash = (await dashboard.load(event(B))) as {
 			totals: { income: number; expense: number };
+			balance: { carried: number; current: number; forecast: number };
+			savings: { total: number; period: number };
 			latest: unknown[];
 		};
 		expect(dash.totals).toEqual({ income: 0, expense: 0 });
+		expect(dash.balance).toEqual({ carried: 0, current: 0, forecast: 0 });
+		expect(dash.savings).toEqual({ total: 0, period: 0 });
 		expect(dash.latest).toHaveLength(0);
 		const stats = (await statsPage.load(
 			event(B, { url: 'http://localhost/statistiques?n=12' })
@@ -391,6 +428,10 @@ describe('user B cannot reach user A’s data through the routes', () => {
 		expect(e.description).toBe('privé');
 		expect(e.photos).toHaveLength(1);
 		expect(getIncome(db, A.id, ids.income).amountCents).toBe(100000);
+		expect(getTransfer(db, A.id, ids.transfer)).toMatchObject({
+			direction: 'deposit',
+			amountCents: 7777
+		});
 		expect(getRule(db, A.id, ids.rule).description).toBe('règle A');
 		expect(getPlace(db, A.id, ids.place).archived).toBe(false);
 		const b = listBudgets(db, A.id, '2026-10-01', { includeArchived: true }).find(

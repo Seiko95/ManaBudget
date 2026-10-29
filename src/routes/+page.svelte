@@ -3,6 +3,7 @@
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import Repeat from '@lucide/svelte/icons/repeat';
 	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
+	import HandCoins from '@lucide/svelte/icons/hand-coins';
 	import PeriodSwitcher from '$lib/components/PeriodSwitcher.svelte';
 	import BudgetProgress from '$lib/components/BudgetProgress.svelte';
 	import ExpenseRow from '$lib/components/ExpenseRow.svelte';
@@ -13,8 +14,7 @@
 
 	let { data }: PageProps = $props();
 
-	const balance = $derived(data.totals.income - data.totals.expense);
-	const forecastBalance = $derived(balance + data.planned.income - data.planned.expense);
+	const shownBalance = $derived(data.forecast ? data.balance.forecast : data.balance.current);
 	const budgetColor = $derived(new Map(data.budgets.map((b) => [b.id, b.color])));
 	const UPCOMING_SHOWN = 8;
 	const upcomingHref = (i: (typeof data.planned.items)[number]) =>
@@ -44,7 +44,9 @@
 </div>
 
 <div class="space-y-6 px-4 pb-10 lg:px-8">
-	<div class="grid gap-2 sm:gap-4 {data.forecast ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-3'}">
+	<div
+		class="grid grid-cols-2 gap-2 sm:gap-4 {data.forecast ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}"
+	>
 		<div class="rounded-xl border bg-card p-3 sm:p-4">
 			<p class="text-xs text-muted-foreground sm:text-sm">{t.dashboard.income}</p>
 			<p class="mt-1 text-base font-semibold tabular-nums sm:text-2xl" data-testid="tile-income">
@@ -70,23 +72,44 @@
 				{/if}
 			</div>
 		{/if}
-		<div class="rounded-xl border bg-card p-3 sm:p-4">
+		<a href="/epargne" class="rounded-xl border bg-card p-3 hover:bg-accent/50 sm:p-4">
+			<p class="flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
+				<HandCoins class="size-3.5" aria-hidden="true" />{t.dashboard.savings}
+			</p>
+			<p class="mt-1 text-base font-semibold tabular-nums sm:text-2xl" data-testid="tile-savings">
+				{formatCents(data.savings.total)}
+			</p>
+			<p class="text-xs text-muted-foreground tabular-nums">
+				{data.savings.period
+					? t.dashboard.savingsPeriod.replace(
+							'{amount}',
+							`${data.savings.period > 0 ? '+' : ''}${formatCents(data.savings.period)}`
+						)
+					: t.dashboard.savingsCta}
+			</p>
+		</a>
+		<div
+			class="rounded-xl border bg-card p-3 sm:p-4 {data.forecast ? 'col-span-2 lg:col-span-1' : ''}"
+		>
 			<p class="text-xs text-muted-foreground sm:text-sm">
 				{data.forecast ? t.dashboard.forecastBalance : t.dashboard.balance}
 			</p>
 			<p
-				class="mt-1 text-base font-semibold tabular-nums sm:text-2xl {(data.forecast
-					? forecastBalance
-					: balance) < 0
+				class="mt-1 text-base font-semibold tabular-nums sm:text-2xl {shownBalance < 0
 					? 'text-destructive'
 					: 'text-emerald-700 dark:text-emerald-400'}"
 				data-testid="tile-balance"
 			>
-				{formatCents(data.forecast ? forecastBalance : balance)}
+				{formatCents(shownBalance)}
 			</p>
 			{#if data.forecast}
 				<p class="text-xs text-muted-foreground tabular-nums">
-					{t.dashboard.currentBalance.replace('{amount}', formatCents(balance))}
+					{t.dashboard.currentBalance.replace('{amount}', formatCents(data.balance.current))}
+				</p>
+			{/if}
+			{#if data.balance.carried}
+				<p class="text-xs text-muted-foreground tabular-nums" data-testid="balance-carried">
+					{t.dashboard.carried.replace('{amount}', formatCents(data.balance.carried))}
 				</p>
 			{/if}
 		</div>

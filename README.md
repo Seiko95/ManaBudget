@@ -1,8 +1,8 @@
 # ManaBudget
 
 A self-hosted personal budget app for phone and desktop: expenses with places, photos, splits
-and tags, income, monthly budgets with alerts, recurring entries and charts. French UI, euros,
-one Docker container, SQLite.
+and tags, income, monthly budgets with alerts, recurring entries, a savings pot and charts. The
+balance carries over from month to month. French UI, euros, one Docker container, SQLite.
 
 - **Budgets contain categories.** You pick a category and the budget follows. Every budget is
   monthly, and the month starts on your payday (1–28, per user).

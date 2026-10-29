@@ -166,3 +166,30 @@ it costs if it's wrong.
   it owned by root and the non-root app couldn't open its database (reproduced). The container
   now starts as root only to `chown` `/data` when needed, then `setpriv`s to the `node` user;
   the Node process itself runs as uid 1000.
+
+## After v1 — Balance carry-over and savings (owner request)
+
+- **The balance now carries over from one period to the next.** The dashboard's "Solde" used to
+  be income − expenses of the selected period only, so whatever was left at the end of a month
+  vanished the next month. It is now the running balance: what was carried in from every earlier
+  period (shown as "dont report : …") plus this period's income − expenses − savings. For a past
+  period it is that period's closing balance. For a period that starts later than tomorrow, the
+  carried amount also includes what is still planned before it (future-dated entries, recurring
+  occurrences not created yet), so "Solde prévu" for next month accounts for this month's rent.
+  _If wrong:_ the history starts at zero with your first entry; money already on the account
+  before you started using the app isn't known (an income "Solde initial" works around it).
+- **Savings ("Épargne") is a separate pot, not an expense category.** The owner asked for "a
+  category you can transfer money into", which goes past the spec's "no transfers" non-goal.
+  Transfers live in their own `savings_transfers` table (deposit / withdrawal, amount, date,
+  description) and are managed on `/epargne`. A deposit lowers the balance and raises savings; it
+  is **never counted as spending**, so budgets, alerts, the expense list and the statistics are
+  unchanged. Making it a budget category instead would have inflated spending and left no way to
+  see or withdraw the amount saved.
+- **One savings pot**, as asked. Several named pots (vacances, urgence…) would need a pot table
+  and a picker; not built.
+- **Transfers can't be dated in the future** (money that already moved), so savings never enter
+  the "planned" figures. Recurring transfers aren't supported either.
+- **Savings can't go below zero:** a withdrawal, edit or delete that would leave the total
+  negative is refused with a message, and nothing is written.
+- **Statistics are untouched:** the trend's "Solde" line stays income − expenses per period, i.e.
+  what the month freed up, whether it was saved or left on the account.
