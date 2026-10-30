@@ -2,6 +2,7 @@ node_modules
 .svelte-kit
 build
 data
+tailscale/state
 test-data
 test-results
 playwright-report

@@ -34,3 +34,8 @@ playwright-report
 
 # Tailscale sidecar state
 /tailscale/state
+
+# Self-hosting: app data, Tailscale state and local compose overrides
+/data
+/tailscale/state
+docker-compose.override.yml
